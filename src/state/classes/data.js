@@ -37,23 +37,30 @@ class Dataset extends EventEmitter {
     for (const key in updates) {
       let time = key;
 
-      if (typeof time === "string") {
-        time = new Date(time).getTime();
-        timestamps.add(time);
-
-        if (time < this.minTime) {
-          this.minTime = time;
-        }
-        if (time > this.maxTime) {
-          this.maxTime = time;
-        }
+      // If can be parsed as a number, assume UNIX timestamp
+      if (!isNaN(time)) {
+        time = +time;
       }
 
+      // If time is string, create date and convert it to UNIX timestamp
+      else if (typeof time === "string") {
+        time = new Date(time).getTime();
+      }
+
+      // Add timestamp to new timestamps set
+      timestamps.add(time);
+
+      // Update min and max times
+      if (time < this.minTime) {
+        this.minTime = time;
+      }
+      if (time > this.maxTime) {
+        this.maxTime = time;
+      }
+
+      // If no data at time yet
       if (!this.data[time]) {
-        this.data[time] = {
-          [model]: updates[key],
-        };
-        continue;
+        this.data[time] = {};
       }
 
       this.data[time][model] = updates[key];
